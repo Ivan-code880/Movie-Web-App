@@ -1,0 +1,18 @@
+.movies-grid.single {
+    padding: 3rem;
+}
+
+.movies-grid.single .movie-card {
+    margin: auto;
+    max-width: 300px;
+}
+.poster {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    /* ensures it keeps natural aspect ratio */
+    border-radius: 12px;
+    object-fit: cover;
+    aspect-ratio: 2 / 3;
+    /* Optional: forces a movie poster shape */
+}
