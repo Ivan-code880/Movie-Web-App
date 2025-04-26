@@ -1,4 +1,5 @@
 import "../css/Favourites.css";
+import { Box, Typography } from "@mui/material";
 import { useMovieContext } from "../contexts/MovieContext";
 import MovieCard from "../components/MovieCard";
 
@@ -6,14 +7,17 @@ function Favourites() {
   const { favourites } = useMovieContext();
   if (favourites.length > 0) {
     return (
-      <div className="favourites">
-        <h2>Your Favourites</h2>
-        <div className="movies-grid">
-          {favourites.map((movie) => (
-            <MovieCard movie={movie} key={movie.id} />
-          ))}
-        </div>
-      </div>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: 4,
+        }}
+      >
+        {favourites.map((movie) => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
+      </Box>
     );
   } else {
     return (
