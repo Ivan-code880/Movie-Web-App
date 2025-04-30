@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { motion } from "framer-motion";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,14 +24,16 @@ function Home() {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const loadPopularMovies = async () => {
       try {
-        const popularMovies = await getPopularMovies();
+        const popularData = await getPopularMovies();
         const genreList = await getGenres();
         setGenres(genreList);
-        setMovies(popularMovies);
+        setMovies(popularData.results);
       } catch (err) {
         console.log(err);
         setError("Failed to load movies...");
@@ -44,9 +47,11 @@ function Home() {
   const handleGenreSelect = async (genreId) => {
     setSelectedGenre(genreId);
     setLoading(true);
+    setPage(1);
+    setHasMore(true);
     try {
-      const moviesByGenre = await getMoviesByGenre(genreId);
-      setMovies(moviesByGenre);
+      const data = await getMoviesByGenre(genreId, 1);
+      setMovies(data.results);
     } catch (err) {
       console.error("Failed to load genre movies:", err);
     } finally {
@@ -56,9 +61,10 @@ function Home() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    if (loading) return;
+    if (!searchQuery.trim() || loading) return;
     setLoading(true);
+    setSelectedGenre(null);
+    setHasMore(false);
 
     try {
       const searchResults = await searchMovies(searchQuery);
@@ -70,8 +76,28 @@ function Home() {
     } finally {
       setLoading(false);
     }
+  };
 
-    setSearchQuery("");
+  const fetchMoreMovies = async () => {
+    if (loading) return;
+    const nextPage = page + 1;
+    try {
+      let newMovies;
+      if (selectedGenre) {
+        const data = await getMoviesByGenre(selectedGenre, nextPage);
+        newMovies = data.results;
+        if (newMovies.length === 0) setHasMore(false);
+      } else {
+        const data = await getPopularMovies(nextPage);
+        newMovies = data.results;
+        if (newMovies.length === 0) setHasMore(false);
+      }
+      setMovies((prev) => [...prev, ...newMovies]);
+      setPage(nextPage);
+    } catch (error) {
+      console.error("Failed to fetch more movies:", error);
+      setHasMore(false);
+    }
   };
 
   return (
@@ -95,7 +121,7 @@ function Home() {
           <motion.div whileHover={{ scale: 1.05 }}>
             <TextField
               variant="outlined"
-              placeholder="Search for movies..."
+              placeholder="Search Showtube..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
@@ -105,9 +131,7 @@ function Home() {
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                width: { xs: "100%", sm: "400px" },
-              }}
+              sx={{ width: { xs: "100%", sm: "400px" } }}
             />
           </motion.div>
           <motion.div whileHover={{ scale: 1.1 }}>
@@ -185,7 +209,7 @@ function Home() {
         </motion.div>
       )}
 
-      {/* Movies or Loading Skeleton */}
+      {/* Movies */}
       {loading ? (
         <Box
           sx={{
@@ -195,45 +219,95 @@ function Home() {
           }}
         >
           {Array.from({ length: 8 }).map((_, idx) => (
-            <Skeleton
-              key={idx}
-              variant="rectangular"
-              width="100%"
-              height={300}
-              sx={{ borderRadius: 3 }}
-            />
-          ))}
-        </Box>
-      ) : (
-        <Box
-          className={`movies-grid${movies.length === 1 ? " single" : ""}`}
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: 4,
-          }}
-        >
-          {movies.map((movie, index) => (
             <motion.div
-              key={movie.id}
-              initial={{ opacity: 0, y: 30 }}
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              whileHover={{
-                scale: 1.08,
-                rotate: 2,
-                boxShadow: "0px 12px 24px rgba(0, 0, 0, 0.3)",
-              }}
-              transition={{
-                duration: 0.8,
-                delay: 0.05 * index,
-                ease: "easeOut",
-              }}
-              style={{ borderRadius: "12px" }}
+              transition={{ duration: 0.6, delay: idx * 0.05 }}
             >
-              <MovieCard movie={movie} />
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={300}
+                sx={{ borderRadius: 3 }}
+              />
             </motion.div>
           ))}
         </Box>
+      ) : movies.length === 0 ? (
+        <Box
+          sx={{
+            textAlign: "center",
+            color: "text.secondary",
+            mt: 8,
+            fontSize: "1.5rem",
+          }}
+        >
+          🚫 No movies found for your search.
+        </Box>
+      ) : (
+        <InfiniteScroll
+          dataLength={movies.length}
+          next={fetchMoreMovies}
+          hasMore={hasMore}
+          loader={
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                gap: 4,
+                mt: 4,
+                mb: 4,
+              }}
+            >
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: idx * 0.05 }}
+                >
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height={300}
+                    sx={{ borderRadius: 3 }}
+                  />
+                </motion.div>
+              ))}
+            </Box>
+          }
+        >
+          <Box
+            className={`movies-grid${movies.length === 1 ? " single" : ""}`}
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: 4,
+            }}
+          >
+            {movies.map((movie, index) => (
+              <motion.div
+                key={movie.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{
+                  scale: 1.08,
+                  rotate: 2,
+                  boxShadow: "0px 12px 24px rgba(0, 0, 0, 0.3)",
+                }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.05 * index,
+                  ease: "easeOut",
+                }}
+                style={{ borderRadius: "12px" }}
+              >
+                <MovieCard movie={movie} />
+              </motion.div>
+            ))}
+          </Box>
+        </InfiniteScroll>
       )}
     </Box>
   );

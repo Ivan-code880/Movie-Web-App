@@ -13,11 +13,14 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
+    "@mui/joy": "^5.0.0-beta.52",
     "@mui/material": "^7.0.2",
     "framer-motion": "^12.9.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.5.0"
+    "react-infinite-scroll-component": "^6.1.0",
+    "react-router-dom": "^7.5.0",
+    "swiper": "^11.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
