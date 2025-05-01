@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import GenreResults from "./pages/GenreResults";
 import MultiSearchPage from "./pages/MultiSearchPage";
 import MovieDetails from "./pages/MovieDetails";
-import CastAndCrew from "./pages/CastandCrew";
+import CastAndCrew from "./pages/CastAndCrew";
 import { MovieProvider } from "./contexts/MovieContext";
 import NavBar from "./components/NavBar";
 import ScrollToTopButton from "./components/ScrollToTopButton";
