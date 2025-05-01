@@ -1,2 +1,2 @@
 # Movie-Web-App
-A full frontend application for a Movie exploratory web appliction using  react JS Library and API features from TMDB - The Movie Database for contents 
+A full frontend web application for movie exploration, top rated, trending, and similar movies with cast info and trailers using  react JS Library and API features from TMDB - The Movie Database for contents 
